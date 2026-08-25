@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIM-KARS Desa Sampanahan Hilir v2.4.0 (Firebase)</title>
+  <title>SIM-KARS Desa Sampanahan Hilir v2.4.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
@@ -61,7 +61,7 @@
               <i class="fa-solid fa-hospital-user"></i> SIM-KARS Sampanahan Hilir
             </h1>
             <span class="bg-teal-900/80 text-teal-200 text-[10px] font-mono px-2 py-0.5 rounded-full border border-teal-500/30">
-              v2.4.0 (Firebase)
+              v2.4.0
             </span>
           </div>
           <p class="text-teal-100 text-xs">Sistem Informasi Kependudukan & Kesehatan Terpadu Desa</p>
@@ -128,7 +128,7 @@
     <main class="max-w-[98%] mx-auto px-2 py-4 flex-1 w-full">
       <div id="loading" class="text-center py-16 bg-white rounded-xl shadow-sm border border-slate-200 my-4">
         <i class="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-3"></i>
-        <p class="text-slate-500 font-medium text-sm">Menghubungkan ke Cloud Database...</p>
+        <p class="text-slate-500 font-medium text-sm">Menghubungkan ke Cloud Firestore...</p>
       </div>
 
       <!-- TAB 1: REKAPAN MATRIKS TOTAL -->
@@ -174,7 +174,7 @@
 
           <div class="flex justify-between items-end mt-6 px-2">
             <div class="text-[10px] text-slate-400 font-mono">
-              <p>SIM-KARS App Engine</p>
+              <p>it.barokah.net • v6.0</p>
               <p>Database: Firebase Firestore</p>
             </div>
             <div class="text-center w-64">
@@ -435,28 +435,23 @@
       addDoc, 
       onSnapshot, 
       query, 
-      orderBy,
       serverTimestamp 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ----------------------------------------------------
-    // GANTI DENGAN KONFIGURASI FIREBASE ANDA
-    // ----------------------------------------------------
+    // Konfigurasi Firebase brokh-5c5d6
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyD-ZdJnU_8BHlleP9dxo5l-u8NNSbWsNEU",
+      authDomain: "brokh-5c5d6.firebaseapp.com",
+      projectId: "brokh-5c5d6",
+      storageBucket: "brokh-5c5d6.firebasestorage.app",
+      messagingSenderId: "52132173832",
+      appId: "1:52132173832:web:c8d25db9c15917c41259bd"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Default Sandi Akses Lokal jika belum diset via Firebase Auth
     const PASSCODE_DEFAULT = "sampanahan2026";
-
     let rawDetailData = [];
     let unsubscribeListener = null;
 
@@ -468,7 +463,6 @@
       tahun: 2026
     };
 
-    // Inisialisasi
     window.addEventListener('DOMContentLoaded', () => {
       setupEventListeners();
       const isLogged = sessionStorage.getItem('simkars_logged_in');
@@ -655,7 +649,6 @@
       }
     }
 
-    // Mendengarkan Real-time update dari Firebase
     function listenFirestoreData() {
       document.getElementById('loading').classList.remove('hidden');
       document.getElementById('viewRekap').classList.add('hidden');
@@ -723,11 +716,9 @@
         };
       });
 
-      // Kumpulkan semua RT
       let listRt = [...new Set(dataWithSasaran.map(d => d.rt))].filter(Boolean).sort();
       if (listRt.length === 0) listRt = ["RT 001", "RT 002", "RT 003", "RT 004", "RT 005", "RT 006"];
 
-      // Update Filter RT & Dropdown Tambah
       const selectRT = document.getElementById('filterRT');
       const formTargetRt = document.getElementById('formTargetRt');
       const currentFilter = selectRT.value;
@@ -741,7 +732,6 @@
       });
       selectRT.value = currentFilter;
 
-      // Hitung Rekapitulasi per RT
       const rows = listRt.map((rtName, index) => {
         const wargaRt = dataWithSasaran.filter(d => d.rt === rtName);
         const kkSet = new Set(wargaRt.map(d => d.noKk).filter(no => no && no !== '-'));
