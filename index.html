@@ -1,1 +1,913 @@
-index.html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIM-KARS Desa Sampanahan Hilir v2.4.0 (Firebase)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background-color: white !important; color: black !important; }
+      th, td { font-size: 8.5px !important; padding: 2px 1px !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col justify-between">
+
+  <!-- LAYAR LOGIN / LOCK SCREEN -->
+  <div id="loginScreen" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200">
+      <div class="bg-teal-700 text-white p-6 text-center">
+        <div class="bg-teal-800 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 text-xl border border-teal-500/50">
+          <i class="fa-solid fa-lock text-amber-300"></i>
+        </div>
+        <h2 class="font-bold text-sm">SIM-KARS Sampanahan Hilir</h2>
+        <p class="text-[11px] text-teal-100">Masukkan kata sandi untuk mengakses data</p>
+      </div>
+
+      <form id="formLogin" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Kata Sandi Akses</label>
+          <div class="relative">
+            <input type="password" id="inputSandi" required placeholder="Masukkan kata sandi..." 
+                   class="w-full p-2.5 pl-9 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono text-sm">
+            <i class="fa-solid fa-key absolute left-3 top-3 text-slate-400"></i>
+          </div>
+        </div>
+
+        <div id="errorSandi" class="text-rose-600 font-semibold text-[11px] hidden text-center bg-rose-50 p-2 rounded-lg border border-rose-200"></div>
+
+        <button type="submit" id="btnLogin" class="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-lg transition shadow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk Aplikasi
+        </button>
+      </form>
+
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 text-center text-[10px] text-slate-400">
+        UPTD Puskesmas Sampanahan &copy; 2026
+      </div>
+    </div>
+  </div>
+
+  <!-- APLIKASI UTAMA -->
+  <div>
+    <!-- Header Utama -->
+    <header class="bg-teal-700 text-white shadow-md py-3 px-6 no-print">
+      <div class="max-w-[98%] mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+              <i class="fa-solid fa-hospital-user"></i> SIM-KARS Sampanahan Hilir
+            </h1>
+            <span class="bg-teal-900/80 text-teal-200 text-[10px] font-mono px-2 py-0.5 rounded-full border border-teal-500/30">
+              v2.4.0 (Firebase)
+            </span>
+          </div>
+          <p class="text-teal-100 text-xs">Sistem Informasi Kependudukan & Kesehatan Terpadu Desa</p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <div class="flex items-center bg-teal-800 border border-teal-500/50 rounded-lg px-2.5 py-1">
+            <i class="fa-solid fa-calendar-days text-amber-300 text-xs mr-2"></i>
+            <span class="text-xs font-semibold mr-1.5 hidden md:inline">Tahun:</span>
+            <select id="selectTahunHeader" class="bg-teal-900 text-white font-bold text-xs rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-300">
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+            </select>
+          </div>
+
+          <button id="btnOpenPengaturan" class="bg-teal-800 hover:bg-teal-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-teal-500/40 shadow-sm">
+            <i class="fa-solid fa-gear text-amber-300"></i> Pengaturan
+          </button>
+          <button id="btnOpenTambah" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-user-plus"></i> + Tambah
+          </button>
+          <button onclick="window.print()" class="bg-teal-800 hover:bg-teal-900 text-white px-2.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-print"></i> Cetak
+          </button>
+          <button id="btnLogout" class="bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm" title="Keluar">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Banner Bidan Desa Pembina -->
+    <div class="bg-white border-b border-slate-200 py-2.5 px-6 no-print">
+      <div class="max-w-[98%] mx-auto flex flex-col md:flex-row justify-between items-center gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-600">Wilayah Pembinaan:</span>
+          <span class="bg-teal-100 text-teal-800 font-bold px-2.5 py-0.5 rounded-full">DESA SAMPANAHAN HILIR</span>
+          <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full">TAHUN LAPORAN: <span id="displayBadgeTahun">2026</span></span>
+        </div>
+        <div class="flex items-center gap-2 text-slate-700">
+          <i class="fa-solid fa-user-nurse text-teal-600 text-sm"></i>
+          <span class="font-semibold">Bidan Desa Pembina:</span>
+          <span class="font-bold text-teal-800" id="displayNamaBidanBanner">Siti Maimunah, A.Md. Keb</span>
+          <span class="text-slate-500 font-mono text-[11px] ml-1">(NIP. <span id="displayNipBidanBanner">19970710 202504 2 007</span>)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigasi -->
+    <div class="bg-slate-100 border-b border-slate-200 no-print">
+      <div class="max-w-[98%] mx-auto px-4 flex gap-4">
+        <button id="tabRekapBtn" class="py-2.5 px-4 font-semibold text-teal-700 border-b-2 border-teal-700 text-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells"></i> Rekapan Matriks Desa
+        </button>
+        <button id="tabDetailBtn" class="py-2.5 px-4 font-semibold text-slate-500 hover:text-teal-700 text-xs flex items-center gap-1.5 border-b-2 border-transparent">
+          <i class="fa-solid fa-address-book"></i> Register Detail Penduduk
+        </button>
+      </div>
+    </div>
+
+    <main class="max-w-[98%] mx-auto px-2 py-4 flex-1 w-full">
+      <div id="loading" class="text-center py-16 bg-white rounded-xl shadow-sm border border-slate-200 my-4">
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-3"></i>
+        <p class="text-slate-500 font-medium text-sm">Menghubungkan ke Cloud Database...</p>
+      </div>
+
+      <!-- TAB 1: REKAPAN MATRIKS TOTAL -->
+      <div id="viewRekap" class="hidden">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <div class="text-center mb-4">
+            <h2 class="text-base font-bold text-slate-800 uppercase tracking-wide">DATA PENDUDUK DESA SAMPANAHAN HILIR</h2>
+            <p class="text-slate-600 font-semibold text-xs">REKAPITULASI SASARAN KESEHATAN TAHUN <span id="tahunJudul" class="text-teal-800 font-bold">2026</span></p>
+          </div>
+
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-xs border-collapse border border-slate-300 text-center">
+              <thead>
+                <tr class="bg-slate-100 text-slate-800 font-bold uppercase text-[10px]">
+                  <th class="border border-slate-300 px-1 py-2" rowspan="2">NO</th>
+                  <th class="border border-slate-300 px-2 py-2" rowspan="2">DESA / RT</th>
+                  <th class="border border-slate-300 px-2 py-1" colspan="3">JMLH PNDDK</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">JMLH KK</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">PUS</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">WUS</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">KB</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">IBU HAMIL</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">BAYI</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">BALITA</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">PRA LANSIA</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">LANSIA 60-70</th>
+                  <th class="border border-slate-300 px-1.5 py-2" rowspan="2">LANSIA >70</th>
+                  <th class="border border-slate-300 px-2 py-1" colspan="3">REMAJA</th>
+                </tr>
+                <tr class="bg-slate-50 text-slate-700 font-bold uppercase text-[10px]">
+                  <th class="border border-slate-300 px-1 py-1 text-blue-700">L</th>
+                  <th class="border border-slate-300 px-1 py-1 text-pink-700">P</th>
+                  <th class="border border-slate-300 px-1 py-1">TOTAL</th>
+                  <th class="border border-slate-300 px-1 py-1 text-blue-700">L</th>
+                  <th class="border border-slate-300 px-1 py-1 text-pink-700">P</th>
+                  <th class="border border-slate-300 px-1 py-1">TOTAL</th>
+                </tr>
+              </thead>
+              <tbody id="tableBodyRekapTotal" class="divide-y divide-slate-200"></tbody>
+              <tfoot id="tableFootRekapTotal" class="bg-slate-100 font-bold"></tfoot>
+            </table>
+          </div>
+
+          <div class="flex justify-between items-end mt-6 px-2">
+            <div class="text-[10px] text-slate-400 font-mono">
+              <p>SIM-KARS App Engine</p>
+              <p>Database: Firebase Firestore</p>
+            </div>
+            <div class="text-center w-64">
+              <p class="text-xs text-slate-600 mb-1">Sampanahan Hilir, <span id="displayTglCetak">-</span></p>
+              <p class="text-xs font-bold text-slate-800 mb-12">Bidan Desa Sampanahan Hilir</p>
+              <p class="font-bold text-slate-900 border-b border-slate-800 pb-0.5 text-xs" id="displayNamaBidanTtd">Siti Maimunah, A.Md. Keb</p>
+              <p class="text-[10px] text-slate-600">NIP. <span id="displayNipBidanTtd">19970710 202504 2 007</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DETAIL REGISTER PENDUDUK -->
+      <div id="viewDetail" class="hidden">
+        <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-4 flex flex-col md:flex-row gap-2.5 no-print">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" placeholder="Cari Nama, NIK, No KK, Pekerjaan..." 
+                   class="w-full pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-teal-500">
+          </div>
+          <div class="w-full md:w-40">
+            <select id="filterRT" class="w-full py-1.5 px-2.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+              <option value="">Semua RT</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-600">
+              <thead class="text-[10px] text-slate-700 uppercase bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th class="px-3 py-2">RT</th>
+                  <th class="px-3 py-2">NIK / NO KK</th>
+                  <th class="px-3 py-2">Nama Lengkap</th>
+                  <th class="px-3 py-2 text-center">JK</th>
+                  <th class="px-3 py-2">Hubungan</th>
+                  <th class="px-3 py-2">Tempat, Tgl Lahir (Usia)</th>
+                  <th class="px-3 py-2">Pekerjaan</th>
+                  <th class="px-3 py-2">Status Kes</th>
+                </tr>
+              </thead>
+              <tbody id="tableBodyDetail" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL PENGATURAN -->
+  <div id="modalPengaturan" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200">
+      <div class="bg-slate-800 text-white px-5 py-3.5 flex justify-between items-center">
+        <h3 class="font-bold text-xs flex items-center gap-2">
+          <i class="fa-solid fa-gear text-amber-400"></i> Pengaturan Aplikasi
+        </h3>
+        <button id="btnClosePengaturan" class="text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formPengaturan" class="p-5 text-xs space-y-3.5">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Bidan Desa *</label>
+          <input type="text" id="cfgNamaBidan" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-semibold text-slate-800">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">NIP Bidan Desa</label>
+          <input type="text" id="cfgNipBidan" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono">
+        </div>
+
+        <div class="border-t border-slate-200 pt-3">
+          <label class="block font-bold text-slate-700 mb-2">Tanggal / Bulan / Tahun Laporan Cetak</label>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Tanggal</label>
+              <input type="number" id="cfgTgl" min="1" max="31" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-bold text-center">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Bulan</label>
+              <select id="cfgBulan" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white font-medium text-xs">
+                <option value="Januari">Januari</option>
+                <option value="Februari">Februari</option>
+                <option value="Maret">Maret</option>
+                <option value="April">April</option>
+                <option value="Mei">Mei</option>
+                <option value="Juni">Juni</option>
+                <option value="Juli">Juli</option>
+                <option value="Agustus">Agustus</option>
+                <option value="September">September</option>
+                <option value="Oktober">Oktober</option>
+                <option value="November">November</option>
+                <option value="Desember">Desember</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 mb-1">Tahun Laporan</label>
+              <input type="number" id="cfgTahun" min="2020" max="2035" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-bold text-center">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+          <button type="button" id="btnBatalPengaturan" class="px-3.5 py-1.5 border border-slate-300 rounded-lg font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
+          <button type="submit" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-bold shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-check text-amber-400"></i> Terapkan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TAMBAH WARGA -->
+  <div id="modalTambah" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto no-print">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl my-8 overflow-hidden border border-slate-200">
+      <div class="bg-teal-700 text-white px-6 py-4 flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Form Tambah Data Warga Baru
+          </h3>
+          <p class="text-[10px] text-teal-200 font-mono">Simpan ke Cloud Firestore</p>
+        </div>
+        <button id="btnCloseTambah" class="text-teal-200 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="formWarga" class="p-6 text-xs space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Pilih RT Target *</label>
+            <select name="targetRt" id="formTargetRt" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white font-semibold text-teal-800">
+              <option value="RT 001">RT 001</option>
+              <option value="RT 002">RT 002</option>
+              <option value="RT 003">RT 003</option>
+              <option value="RT 004">RT 004</option>
+              <option value="RT 005">RT 005</option>
+              <option value="RT 006">RT 006</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">RT / RW Format</label>
+            <input type="text" name="rtRw" placeholder="Contoh: 001/001" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nomor Kartu Keluarga (NO KK)</label>
+            <input type="text" name="noKk" placeholder="16 digit No KK" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">NIK Warga *</label>
+            <input type="text" name="nik" required placeholder="16 digit NIK" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="md:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+            <input type="text" name="nama" required placeholder="Nama Anggota Keluarga" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 uppercase">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Jenis Kelamin (JK) *</label>
+            <select name="jk" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+              <option value="L">Laki-Laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hubungan Kategori *</label>
+            <select name="hubungan" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+              <option value="KK">Kepala Keluarga (KK)</option>
+              <option value="ISTRI">Istri</option>
+              <option value="ANAK">Anak</option>
+              <option value="SAUDARA">Saudara</option>
+              <option value="CUCU">Cucu</option>
+              <option value="ORANG TUA">Orang Tua</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tempat Lahir</label>
+            <input type="text" name="tempatLahir" placeholder="Kotabaru / Tanah Bumbu" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 uppercase">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tanggal Lahir *</label>
+            <input type="date" name="tglLahir" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Status Perkawinan *</label>
+            <select name="statusKawin" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+              <option value="BELUM KAWIN">BELUM KAWIN</option>
+              <option value="KAWIN">KAWIN</option>
+              <option value="JANDA">JANDA</option>
+              <option value="DUDA">DUDA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Pekerjaan</label>
+            <input type="text" name="pekerjaan" placeholder="Petani / MRT / Pelajar" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 uppercase">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Pendidikan Terakhir</label>
+            <input type="text" name="pendidikan" placeholder="TAMAT SD / SLTA" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 uppercase">
+          </div>
+        </div>
+
+        <div class="bg-teal-50 p-3 rounded-lg border border-teal-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-teal-800 mb-1">Status KB (Jika Ada)</label>
+            <select name="kb" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+              <option value="">- Tidak Ber-KB -</option>
+              <option value="PIL KOMBINASI">Pil Kombinasi</option>
+              <option value="PIL MENYUSUI">Pil Menyusui</option>
+              <option value="SUNTIK 3">Suntik 3 Bulan</option>
+              <option value="SUNTIK 1">Suntik 1 Bulan</option>
+              <option value="IMPLANT">Implant</option>
+              <option value="IUD">IUD</option>
+            </select>
+          </div>
+          <div class="flex items-center pt-4">
+            <label class="flex items-center gap-2 cursor-pointer font-bold text-teal-800">
+              <input type="checkbox" name="ibuHamil" value="true" class="w-4 h-4 text-teal-600 rounded">
+              Sedang Ibu Hamil (Bumil)
+            </label>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button type="button" id="btnBatalTambah" class="px-4 py-2 border border-slate-300 rounded-lg font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
+          <button type="submit" id="btnSubmitForm" class="px-5 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-bold shadow flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Data Warga
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer Aplikasi -->
+  <footer class="bg-white border-t border-slate-200 py-3 px-6 text-center text-xs text-slate-500 no-print mt-auto">
+    <p>SIM-KARS Desa Sampanahan Hilir &copy; 2026 | UPTD Puskesmas Sampanahan</p>
+  </footer>
+
+  <!-- SCRIPT FIREBASE & LOGIKA UTAMA -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      onSnapshot, 
+      query, 
+      orderBy,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ----------------------------------------------------
+    // GANTI DENGAN KONFIGURASI FIREBASE ANDA
+    // ----------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Default Sandi Akses Lokal jika belum diset via Firebase Auth
+    const PASSCODE_DEFAULT = "sampanahan2026";
+
+    let rawDetailData = [];
+    let unsubscribeListener = null;
+
+    let configApp = {
+      namaBidan: "Siti Maimunah, A.Md. Keb",
+      nipBidan: "19970710 202504 2 007",
+      tgl: new Date().getDate(),
+      bulan: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"][new Date().getMonth()],
+      tahun: 2026
+    };
+
+    // Inisialisasi
+    window.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      const isLogged = sessionStorage.getItem('simkars_logged_in');
+      if (isLogged === 'true') {
+        document.getElementById('loginScreen').classList.add('hidden');
+        initAplikasi();
+      }
+    });
+
+    function setupEventListeners() {
+      document.getElementById('formLogin').addEventListener('submit', prosesLogin);
+      document.getElementById('btnLogout').addEventListener('click', logoutApp);
+      document.getElementById('selectTahunHeader').addEventListener('change', (e) => gantiTahunLaporan(e.target.value));
+      document.getElementById('tabRekapBtn').addEventListener('click', () => switchTab('rekap'));
+      document.getElementById('tabDetailBtn').addEventListener('click', () => switchTab('detail'));
+      document.getElementById('btnOpenPengaturan').addEventListener('click', openModalPengaturan);
+      document.getElementById('btnClosePengaturan').addEventListener('click', closeModalPengaturan);
+      document.getElementById('btnBatalPengaturan').addEventListener('click', closeModalPengaturan);
+      document.getElementById('formPengaturan').addEventListener('submit', simpanPengaturan);
+      document.getElementById('btnOpenTambah').addEventListener('click', openModalTambah);
+      document.getElementById('btnCloseTambah').addEventListener('click', closeModalTambah);
+      document.getElementById('btnBatalTambah').addEventListener('click', closeModalTambah);
+      document.getElementById('formWarga').addEventListener('submit', submitFormWarga);
+      document.getElementById('searchInput').addEventListener('keyup', filterDataDetail);
+      document.getElementById('filterRT').addEventListener('change', filterDataDetail);
+    }
+
+    function prosesLogin(e) {
+      e.preventDefault();
+      const sandi = document.getElementById('inputSandi').value;
+      const btn = document.getElementById('btnLogin');
+      const errBox = document.getElementById('errorSandi');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa...`;
+      errBox.classList.add('hidden');
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i> Masuk Aplikasi`;
+        if (sandi === PASSCODE_DEFAULT) {
+          sessionStorage.setItem('simkars_logged_in', 'true');
+          document.getElementById('loginScreen').classList.add('hidden');
+          initAplikasi();
+        } else {
+          errBox.innerText = "Kata sandi yang Anda masukkan salah!";
+          errBox.classList.remove('hidden');
+        }
+      }, 400);
+    }
+
+    function logoutApp() {
+      if (confirm("Apakah Anda yakin ingin keluar dari aplikasi?")) {
+        sessionStorage.removeItem('simkars_logged_in');
+        location.reload();
+      }
+    }
+
+    function initAplikasi() {
+      const savedConfig = localStorage.getItem('simkars_config');
+      if (savedConfig) {
+        try { 
+          const parsed = JSON.parse(savedConfig);
+          configApp = { ...configApp, ...parsed };
+        } catch(e) {}
+      }
+
+      applyConfigToUI();
+      listenFirestoreData();
+    }
+
+    function applyConfigToUI() {
+      document.getElementById('displayNamaBidanBanner').innerText = configApp.namaBidan;
+      document.getElementById('displayNipBidanBanner').innerText = configApp.nipBidan;
+      document.getElementById('displayNamaBidanTtd').innerText = configApp.namaBidan;
+      document.getElementById('displayNipBidanTtd').innerText = configApp.nipBidan;
+      document.getElementById('displayTglCetak').innerText = `${configApp.tgl} ${configApp.bulan} ${configApp.tahun}`;
+      document.getElementById('tahunJudul').innerText = configApp.tahun;
+      document.getElementById('displayBadgeTahun').innerText = configApp.tahun;
+      document.getElementById('selectTahunHeader').value = configApp.tahun;
+
+      document.getElementById('cfgNamaBidan').value = configApp.namaBidan;
+      document.getElementById('cfgNipBidan').value = configApp.nipBidan;
+      document.getElementById('cfgTgl').value = configApp.tgl;
+      document.getElementById('cfgBulan').value = configApp.bulan;
+      document.getElementById('cfgTahun').value = configApp.tahun;
+    }
+
+    function gantiTahunLaporan(th) {
+      configApp.tahun = parseInt(th);
+      localStorage.setItem('simkars_config', JSON.stringify(configApp));
+      applyConfigToUI();
+      prosesDanRenderSemua(rawDetailData);
+    }
+
+    function openModalPengaturan() {
+      document.getElementById('modalPengaturan').classList.remove('hidden');
+    }
+
+    function closeModalPengaturan() {
+      document.getElementById('modalPengaturan').classList.add('hidden');
+    }
+
+    function simpanPengaturan(e) {
+      e.preventDefault();
+      configApp.namaBidan = document.getElementById('cfgNamaBidan').value;
+      configApp.nipBidan = document.getElementById('cfgNipBidan').value || "-";
+      configApp.tgl = document.getElementById('cfgTgl').value;
+      configApp.bulan = document.getElementById('cfgBulan').value;
+      configApp.tahun = parseInt(document.getElementById('cfgTahun').value);
+
+      localStorage.setItem('simkars_config', JSON.stringify(configApp));
+      applyConfigToUI();
+      closeModalPengaturan();
+      prosesDanRenderSemua(rawDetailData);
+    }
+
+    function openModalTambah() {
+      document.getElementById('modalTambah').classList.remove('hidden');
+    }
+
+    function closeModalTambah() {
+      document.getElementById('modalTambah').classList.add('hidden');
+      document.getElementById('formWarga').reset();
+    }
+
+    async function submitFormWarga(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitForm');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...`;
+
+      const formElement = document.getElementById('formWarga');
+      const formData = new FormData(formElement);
+      const formObj = {};
+      formData.forEach((value, key) => formObj[key] = value);
+
+      try {
+        await addDoc(collection(db, "penduduk"), {
+          rt: formObj.targetRt || "RT 001",
+          rtRw: formObj.rtRw || "-",
+          noKk: formObj.noKk || "-",
+          nik: formObj.nik || "-",
+          nama: (formObj.nama || "").toUpperCase(),
+          jk: formObj.jk || "L",
+          hubungan: formObj.hubungan || "KK",
+          tempatLahir: (formObj.tempatLahir || "-").toUpperCase(),
+          tglLahir: formObj.tglLahir || "",
+          statusKawin: formObj.statusKawin || "BELUM KAWIN",
+          pekerjaan: (formObj.pekerjaan || "-").toUpperCase(),
+          pendidikan: (formObj.pendidikan || "-").toUpperCase(),
+          kb: formObj.kb || "-",
+          ibuHamil: formObj.ibuHamil === "true",
+          createdAt: serverTimestamp()
+        });
+
+        alert("Data warga berhasil disimpan ke Firebase!");
+        closeModalTambah();
+      } catch (err) {
+        console.error("Gagal simpan ke Firestore:", err);
+        alert("Gagal menyimpan data: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Warga`;
+      }
+    }
+
+    function switchTab(tab) {
+      const rekapBtn = document.getElementById('tabRekapBtn');
+      const detailBtn = document.getElementById('tabDetailBtn');
+      const viewRekap = document.getElementById('viewRekap');
+      const viewDetail = document.getElementById('viewDetail');
+
+      if (tab === 'rekap') {
+        rekapBtn.className = "py-2.5 px-4 font-semibold text-teal-700 border-b-2 border-teal-700 text-xs flex items-center gap-1.5";
+        detailBtn.className = "py-2.5 px-4 font-semibold text-slate-500 hover:text-teal-700 text-xs flex items-center gap-1.5 border-b-2 border-transparent";
+        viewRekap.classList.remove('hidden');
+        viewDetail.classList.add('hidden');
+      } else {
+        detailBtn.className = "py-2.5 px-4 font-semibold text-teal-700 border-b-2 border-teal-700 text-xs flex items-center gap-1.5";
+        rekapBtn.className = "py-2.5 px-4 font-semibold text-slate-500 hover:text-teal-700 text-xs flex items-center gap-1.5 border-b-2 border-transparent";
+        viewDetail.classList.remove('hidden');
+        viewRekap.classList.add('hidden');
+      }
+    }
+
+    // Mendengarkan Real-time update dari Firebase
+    function listenFirestoreData() {
+      document.getElementById('loading').classList.remove('hidden');
+      document.getElementById('viewRekap').classList.add('hidden');
+      document.getElementById('viewDetail').classList.add('hidden');
+
+      if (unsubscribeListener) unsubscribeListener();
+
+      const q = query(collection(db, "penduduk"));
+      unsubscribeListener = onSnapshot(q, (snapshot) => {
+        const list = [];
+        snapshot.forEach((doc) => {
+          const d = doc.data();
+          list.push({
+            id: doc.id,
+            ...d,
+            usia: hitungUsia(d.tglLahir, configApp.tahun)
+          });
+        });
+
+        rawDetailData = list;
+        prosesDanRenderSemua(list);
+        document.getElementById('loading').classList.add('hidden');
+        switchTab('rekap');
+      }, (err) => {
+        console.error("Firestore Error:", err);
+        document.getElementById('loading').innerHTML = `
+          <div class="text-rose-600 font-bold p-4">
+            <p>Gagal memuat data dari Firebase!</p>
+            <p class="text-xs font-normal mt-1 text-slate-500">${err.message}</p>
+          </div>
+        `;
+      });
+    }
+
+    function hitungUsia(tglLahirStr, thLaporan) {
+      if (!tglLahirStr) return 0;
+      const lahir = new Date(tglLahirStr);
+      if (isNaN(lahir)) return 0;
+      return thLaporan - lahir.getFullYear();
+    }
+
+    function prosesDanRenderSemua(data) {
+      const dataWithSasaran = data.map(item => {
+        const usia = hitungUsia(item.tglLahir, configApp.tahun);
+        const isWus = item.jk === 'P' && usia >= 15 && usia <= 49;
+        const isPus = isWus && item.statusKawin === 'KAWIN';
+        const isBayi = usia < 1;
+        const isBalita = usia >= 1 && usia <= 5;
+        const isPraLansia = usia >= 45 && usia <= 59;
+        const isLansia60_70 = usia >= 60 && usia <= 70;
+        const isLansiaOver70 = usia > 70;
+        const isRemaja = usia >= 10 && usia <= 18;
+
+        return {
+          ...item,
+          usia,
+          isWus,
+          isPus,
+          isBayi,
+          isBalita,
+          isPraLansia,
+          isLansia60_70,
+          isLansiaOver70,
+          isRemaja
+        };
+      });
+
+      // Kumpulkan semua RT
+      let listRt = [...new Set(dataWithSasaran.map(d => d.rt))].filter(Boolean).sort();
+      if (listRt.length === 0) listRt = ["RT 001", "RT 002", "RT 003", "RT 004", "RT 005", "RT 006"];
+
+      // Update Filter RT & Dropdown Tambah
+      const selectRT = document.getElementById('filterRT');
+      const formTargetRt = document.getElementById('formTargetRt');
+      const currentFilter = selectRT.value;
+
+      selectRT.innerHTML = '<option value="">Semua RT</option>';
+      formTargetRt.innerHTML = '';
+
+      listRt.forEach(rt => {
+        selectRT.innerHTML += `<option value="${rt}">${rt}</option>`;
+        formTargetRt.innerHTML += `<option value="${rt}">${rt}</option>`;
+      });
+      selectRT.value = currentFilter;
+
+      // Hitung Rekapitulasi per RT
+      const rows = listRt.map((rtName, index) => {
+        const wargaRt = dataWithSasaran.filter(d => d.rt === rtName);
+        const kkSet = new Set(wargaRt.map(d => d.noKk).filter(no => no && no !== '-'));
+
+        const jmlPnddkL = wargaRt.filter(d => d.jk === 'L').length;
+        const jmlPnddkP = wargaRt.filter(d => d.jk === 'P').length;
+        const remajaL = wargaRt.filter(d => d.isRemaja && d.jk === 'L').length;
+        const remajaP = wargaRt.filter(d => d.isRemaja && d.jk === 'P').length;
+
+        return {
+          no: index + 1,
+          wilayah: rtName,
+          jmlPnddkL,
+          jmlPnddkP,
+          jmlPnddkTotal: jmlPnddkL + jmlPnddkP,
+          jmlKK: kkSet.size || wargaRt.filter(d => d.hubungan === 'KK').length,
+          pus: wargaRt.filter(d => d.isPus).length,
+          wus: wargaRt.filter(d => d.isWus).length,
+          kb: wargaRt.filter(d => d.kb && d.kb !== '-').length,
+          ibuHamil: wargaRt.filter(d => d.ibuHamil).length,
+          bayi: wargaRt.filter(d => d.isBayi).length,
+          balita: wargaRt.filter(d => d.isBalita).length,
+          praLansia: wargaRt.filter(d => d.isPraLansia).length,
+          lansia60_70: wargaRt.filter(d => d.isLansia60_70).length,
+          lansiaOver70: wargaRt.filter(d => d.isLansiaOver70).length,
+          remajaL,
+          remajaP,
+          remajaTotal: remajaL + remajaP
+        };
+      });
+
+      const total = rows.reduce((acc, curr) => ({
+        jmlPnddkL: acc.jmlPnddkL + curr.jmlPnddkL,
+        jmlPnddkP: acc.jmlPnddkP + curr.jmlPnddkP,
+        jmlPnddkTotal: acc.jmlPnddkTotal + curr.jmlPnddkTotal,
+        jmlKK: acc.jmlKK + curr.jmlKK,
+        pus: acc.pus + curr.pus,
+        wus: acc.wus + curr.wus,
+        kb: acc.kb + curr.kb,
+        ibuHamil: acc.ibuHamil + curr.ibuHamil,
+        bayi: acc.bayi + curr.bayi,
+        balita: acc.balita + curr.balita,
+        praLansia: acc.praLansia + curr.praLansia,
+        lansia60_70: acc.lansia60_70 + curr.lansia60_70,
+        lansiaOver70: acc.lansiaOver70 + curr.lansiaOver70,
+        remajaL: acc.remajaL + curr.remajaL,
+        remajaP: acc.remajaP + curr.remajaP,
+        remajaTotal: acc.remajaTotal + curr.remajaTotal
+      }), {
+        jmlPnddkL: 0, jmlPnddkP: 0, jmlPnddkTotal: 0, jmlKK: 0, pus: 0, wus: 0,
+        kb: 0, ibuHamil: 0, bayi: 0, balita: 0, praLansia: 0, lansia60_70: 0,
+        lansiaOver70: 0, remajaL: 0, remajaP: 0, remajaTotal: 0
+      });
+
+      renderRekapTable({ rows, total });
+      filterDataDetail();
+    }
+
+    function renderRekapTable(res) {
+      const tbody = document.getElementById('tableBodyRekapTotal');
+      const tfoot = document.getElementById('tableFootRekapTotal');
+
+      let html = '';
+      res.rows.forEach(r => {
+        html += `<tr class="hover:bg-slate-50">
+          <td class="border border-slate-300 px-1 py-1.5">${r.no}</td>
+          <td class="border border-slate-300 px-2 py-1.5 font-semibold text-slate-800 text-left">${r.wilayah}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-blue-700">${r.jmlPnddkL}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-pink-700">${r.jmlPnddkP}</td>
+          <td class="border border-slate-300 px-1 py-1.5 font-bold">${r.jmlPnddkTotal}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.jmlKK}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.pus}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.wus}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.kb}</td>
+          <td class="border border-slate-300 px-1 py-1.5 font-semibold text-emerald-700">${r.ibuHamil}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.bayi}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.balita}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.praLansia}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.lansia60_70}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${r.lansiaOver70}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-blue-700">${r.remajaL}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-pink-700">${r.remajaP}</td>
+          <td class="border border-slate-300 px-1 py-1.5 font-bold">${r.remajaTotal}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+
+      if (res.total) {
+        const t = res.total;
+        tfoot.innerHTML = `<tr class="bg-slate-100 font-bold text-slate-900">
+          <td class="border border-slate-300 px-1 py-1.5" colspan="2">JUMLAH TOTAL</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-blue-800">${t.jmlPnddkL}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-pink-800">${t.jmlPnddkP}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-teal-800">${t.jmlPnddkTotal}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.jmlKK}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.pus}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.wus}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.kb}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-emerald-800">${t.ibuHamil}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.bayi}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.balita}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.praLansia}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.lansia60_70}</td>
+          <td class="border border-slate-300 px-1 py-1.5">${t.lansiaOver70}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-blue-800">${t.remajaL}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-pink-800">${t.remajaP}</td>
+          <td class="border border-slate-300 px-1 py-1.5 text-teal-800">${t.remajaTotal}</td>
+        </tr>`;
+      }
+    }
+
+    function filterDataDetail() {
+      const search = (document.getElementById('searchInput').value || "").toLowerCase();
+      const selectedRT = document.getElementById('filterRT').value;
+
+      const filtered = rawDetailData.filter(item => {
+        const matchSearch = (item.nama || "").toLowerCase().includes(search) || 
+                            (item.nik || "").toLowerCase().includes(search) ||
+                            (item.noKk || "").toLowerCase().includes(search) ||
+                            (item.pekerjaan || "").toLowerCase().includes(search);
+        const matchRT = selectedRT === "" || item.rt === selectedRT;
+        return matchSearch && matchRT;
+      });
+
+      const tbody = document.getElementById('tableBodyDetail');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-6 text-center text-slate-400">Data tidak ditemukan.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(row => {
+        const badgeJK = row.jk === 'L' 
+          ? `<span class="bg-blue-100 text-blue-700 font-semibold px-1.5 py-0.5 rounded text-[10px]">L</span>`
+          : row.jk === 'P'
+          ? `<span class="bg-pink-100 text-pink-700 font-semibold px-1.5 py-0.5 rounded text-[10px]">P</span>`
+          : `-`;
+
+        let listStatus = [];
+        if (row.isPus) listStatus.push('PUS');
+        if (row.isWus) listStatus.push('WUS');
+        if (row.ibuHamil) listStatus.push('Ibu Hamil');
+        if (row.isBayi) listStatus.push('Bayi');
+        if (row.isBalita) listStatus.push('Balita');
+        if (row.kb && row.kb !== '-') listStatus.push('KB: ' + row.kb);
+
+        const badgeStatus = listStatus.length > 0 
+          ? `<span class="bg-teal-50 text-teal-700 font-medium px-1.5 py-0.5 rounded border border-teal-200 text-[10px]">${listStatus.join(', ')}</span>`
+          : `<span class="text-slate-400 text-[10px]">-</span>`;
+
+        html += `<tr class="hover:bg-slate-50 transition">
+          <td class="px-3 py-2 font-medium text-slate-900">${row.rt}</td>
+          <td class="px-3 py-2 text-slate-500 font-mono text-[11px]">
+            <div>NIK: ${row.nik}</div>
+            <div class="text-[10px] text-slate-400">KK: ${row.noKk}</div>
+          </td>
+          <td class="px-3 py-2 font-semibold text-slate-800">${row.nama}</td>
+          <td class="px-3 py-2 text-center">${badgeJK}</td>
+          <td class="px-3 py-2 text-slate-600">${row.hubungan}</td>
+          <td class="px-3 py-2">${row.tempatLahir}, ${row.tglLahir} <span class="text-slate-400">(${row.usia} th)</span></td>
+          <td class="px-3 py-2 text-slate-600">${row.pekerjaan}</td>
+          <td class="px-3 py-2">${badgeStatus}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
